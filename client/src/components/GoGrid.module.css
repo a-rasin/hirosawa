@@ -1,0 +1,47 @@
+.row {
+  display: flex;
+}
+
+#board {
+  display: inline-block;
+  flex-direction: column;
+  width: auto;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: brown;
+  background: url("grid.png");
+  background-repeat: repeat;
+  border: 1px solid black;
+}
+
+.stone {
+  display: flex;
+  color: transparent;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  margin: 4px;
+}
+
+.stone.white {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.stone.black {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.stone.available {
+  background-color: transparent;
+}
+
+.stone.available:hover {
+  background-color: #16437e;
+  opacity: 0.4;
+}

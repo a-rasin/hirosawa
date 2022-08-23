@@ -1,0 +1,46 @@
+.containerOuter {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+.gameLog {
+  display: flex;
+  justify-content: space-around;
+  min-width: 800px;
+  border: 1px solid #0275d8;
+  margin-top: 5px;
+  padding: 5px;
+  align-items: center;
+}
+
+.dropdown {
+  margin-top: 15px;
+  margin-bottom: 5px;
+  width: 100%;
+  font-size: 20px;
+}
+
+.space {
+  width: 20px;
+  height: 50px;
+}
+.gameButton {
+  margin: 5px;
+  border: 1px solid #0275d8;
+  background-color: transparent;
+  color: #0275d8;
+  width: 130px;
+  border-radius: 5px;
+  padding: 5px;
+}
+.gameButton:hover {
+  background-color: #0275d8;
+  color: #fff;
+}
+.buttonCentre {
+  width: 100%;
+}
+
+.boardBorder {
+  border: 2px solid blue;
+}
