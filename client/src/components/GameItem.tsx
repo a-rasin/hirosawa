@@ -15,7 +15,7 @@ export default function GameList(props: GameItemProps) {
     <div className={style.gameLog}>
       <div className={style.title}>Game #{gameId}</div>
       <div className={style.title}>Winner: {winner}</div>
-      <div className={style.title}>Date: {date}</div>
+      <div className={style.title}>Date: {(new Date(date)).toLocaleString()}</div>
       <button
         className={style.gameButton}
         onClick={() => navigate(`/game-log/${gameId}`)}

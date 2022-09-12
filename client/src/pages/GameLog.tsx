@@ -1,23 +1,59 @@
-import { useContext } from "react";
-import { UserContext } from "../context";
-import { Navigate, useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Stone } from "../types/Game";
 import style from "./Home.module.css";
 import GoGrid from "../components/GoGrid";
 
-export default function GameLog() {
-  const { user } = useContext(UserContext);
+interface Game {
+  winner: number;
+  board: Stone[][];
+}
 
-  const games = JSON.parse(localStorage.getItem("history") ?? "[]");
+interface Move {
+  stone: number;
+  x: number;
+  y: number;
+}
+
+export default function GameLog() {
+  const [game, setGame] = useState<Game | null>(null);
   const { gameId } = useParams();
+  const navigate = useNavigate();
+
+  const getGame = async () => {
+    const data = await fetch('/game/' + gameId);
+    const json = await data.json();
+
+    if (!json) {
+      navigate('/history');
+      return;
+    }
+
+    let board = new Array(json.data.size).fill([]);
+
+    board = board.map(() => new Array(json.data.size).fill(0).map(() => 0));
+
+    json.data.moves.forEach((a: Move, i: number) => {
+      board[a.x][a.y] = {
+        stone: a.stone,
+        move: i + 1
+      };
+    });
+
+    setGame({ ...json.data, board });
+  };
+
+  useEffect(() => {
+    getGame();
+  }, []);
+
   if (!gameId) return null;
-  const game = games[parseInt(gameId) - 1];
   if (!game) return null;
-  if (!user) return <Navigate to="/login" />;
 
   return (
     <div className={style.containerOuter}>
       <div style={{ textAlign: "center" }}>
-        <b>Winner: {game.winner}</b>
+        <b>Winner: {['None', 'White', 'Black', 'Draw'][game.winner]}</b>
         <br />
         <br />
         <GoGrid board={game.board} shouldShowNumbers={true} />

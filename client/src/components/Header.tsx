@@ -22,7 +22,13 @@ export default function Header() {
           )}
           <button
             className={style.action}
-            onClick={() => {
+            onClick={async () => {
+              await fetch('/logout', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
               logout();
               navigate("/");
             }}
@@ -37,7 +43,7 @@ export default function Header() {
           Login
         </button>
       ) : (
-        <button className={style.action} onClick={() => navigate("sign-up")}>
+        <button className={style.action} onClick={() => navigate("signup")}>
           Sign Up
         </button>
       );

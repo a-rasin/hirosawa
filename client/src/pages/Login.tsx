@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect, useRef } from "react";
+import { UserContext } from "../context";
 import { useNavigate } from "react-router";
 import { Input, Button, Message } from "../components";
-import { UserContext } from "../context";
-import users from "../data/users.json";
+import Cookies from 'js-cookie';
 
 import style from "./Login.module.css";
 
@@ -14,15 +14,26 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isCredentialInvalid, setIsCredentialInvalid] = useState(false);
 
-  const handleLogin = () => {
-    let user = users.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (!user) {
+  const handleLogin = async () => {
+    const data = await fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({username, password})
+    });
+
+    if (data.status !== 200) {
       setIsCredentialInvalid(true);
+    }
+
+    const json = await data.json();
+
+    if (json.success) {
+      login(json.user);
+      navigate("/")
     } else {
-      login(username);
-      navigate("/");
+      setIsCredentialInvalid(true);
     }
   };
 

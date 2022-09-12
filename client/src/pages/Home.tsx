@@ -15,14 +15,28 @@ export default function Home({
   useEffect(() => {
     setBoardSize(boards[0].size);
 
-    fetch("http://localhost:5000")
+    fetch("/games")
       .then(data => data.json())
       .then(data => console.log(data))
   }, []);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (boardSize) {
-      navigate("/game");
+      const data = await fetch('/game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({size: boardSize})
+      });
+
+      if (data.status !== 200) {
+        return;
+      }
+
+      const json = await data.json();
+
+      navigate("/game/" + json.data.insertedId);
     } else {
       alert("Set Board Size");
     }

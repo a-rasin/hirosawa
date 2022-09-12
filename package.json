@@ -1,0 +1,10 @@
+{
+  "name": "Assignment 3",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd server && npm run start & cd client && npm run start",
+    "install": "cd server && npm install & cd client && npm install"
+  },
+  "author": "",
+  "license": "ISC"
+}

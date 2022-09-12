@@ -1,12 +1,20 @@
-import { useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context";
 import { useNavigate } from "react-router";
-
 import { GameItem } from "../components";
 import style from "../pages/Home.module.css";
 
 export default function History() {
-  const games = JSON.parse(localStorage.getItem("history") ?? "[]");
+  const [games, setGames] = useState([]);
+
+  const getGames = async () => {
+    const data = await fetch('/games');
+    setGames((await data.json())?.data);
+  };
+
+  useEffect(() => {
+    getGames();
+  }, []);
 
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -19,19 +27,19 @@ export default function History() {
         <div>
           {games.map(
             ({
-              gameId,
+              _id: id,
               date,
               winner,
             }: {
-              gameId: number;
+              _id: number;
               date: string;
-              winner: string;
+              winner: number;
             }) => (
               <GameItem
-                key={gameId}
-                gameId={gameId}
+                key={id}
+                gameId={id}
                 date={date}
-                winner={winner}
+                winner={['None', 'White', 'Black', 'Draw'][winner]}
               />
             )
           )}

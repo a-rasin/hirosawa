@@ -3,7 +3,7 @@ import { createContext } from "react";
 
 type UserContextType = {
   user?: User;
-  login: (username: string) => void;
+  login: (user: User) => void;
   logout: () => void;
 };
 
