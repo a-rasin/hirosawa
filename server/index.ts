@@ -1,15 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
-const cookieParser = require('cookie-parser');
-const { isAuthenticated } = require('./middleware');
+import express from 'express';
+import cors from 'cors';
+import { MongoClient } from 'mongodb';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import cookieParser from 'cookie-parser';
+import { isAuthenticated } from './middleware';
+import dotenv from 'dotenv';
+import authHandler from './auth';
+import gameHandler from './game';
+import userHandler from './user';
 
-require('dotenv').config();
-const client = new MongoClient(process.env.DB, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+dotenv.config();
+
+const client = new MongoClient(process.env.DB ?? '', {
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true
 });
 
 const app = express();
@@ -37,9 +42,10 @@ client.connect((err, db) => {
 
   const con = db.db();
 
-  const passport = require('./auth.js')(con);
-  const gameRouter = require('./game.js')(con);
-  const userRouter = require('./user.js')(con, passport);
+  const passport = authHandler(con);
+  const gameRouter = gameHandler(con);
+  const userRouter = userHandler(con, passport);
+
   app.use(passport.initialize());
   app.use(passport.session());
 

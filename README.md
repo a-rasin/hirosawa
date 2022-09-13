@@ -22,5 +22,5 @@ DB=mongodb://127.0.0.1:27017/assignment3
 ## Run the app
 To run the application run
 ```
-npm run start
+npm run dev
 ```

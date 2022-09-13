@@ -1,11 +1,14 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const { body } = require('express-validator');
-const router = express.Router();
-const { dataValidationErrorManagement } = require('./middleware');
-const { isAuthenticated } = require('./middleware');
+import express, { Router } from 'express';
+import bcrypt from 'bcrypt';
+import { PassportStatic } from 'passport';
+import { Db } from 'mongodb';
+import { body } from 'express-validator';
+import { dataValidationErrorManagement } from './middleware';
+import { isAuthenticated } from './middleware';
 
-module.exports = (db, passport) => {
+const router = express.Router();
+
+export default (db: Db, passport: PassportStatic): Router => {
   // Sign up
   router.post(
     '/user',
@@ -25,8 +28,13 @@ module.exports = (db, passport) => {
             if (err) {
               res.status(400).send(err);
             } else {
-              req.login(user, function(err) {
-                if (err) { return next(err); }
+              req.login({
+                id: result?.insertedId.toHexString() ?? '',
+                ...user
+              }, function(err: any) {
+                if (err || !result) {
+                  return res.status(500).send(err);
+                }
                 res.json({success: true, user: {id: result.insertedId, username: req.body.username}});
               });
             }
@@ -52,7 +60,10 @@ module.exports = (db, passport) => {
   });
 
   router.post('/login', passport.authenticate('local'), (req, res) => {
-    res.json({ success: true, user: {id: req.user._id, username: req.user.username} });
+    if (!req.user) {
+      return res.status(401).json({ err: 'Not logged in' });
+    }
+    res.json({ success: true, user: {id: req.user.id, username: req.user.username} });
   });
 
   router.post('/logout', (req, res, next) => {

@@ -1,15 +1,30 @@
-const express = require('express');
-const router = express.Router();
-const { ObjectId } = require('mongodb');
-const { dataValidationErrorManagement } = require('./middleware');
-const { body } = require('express-validator');
+import express, { Router } from 'express';
+import { ObjectId, Db } from 'mongodb';
+import { dataValidationErrorManagement } from './middleware';
+import { body } from 'express-validator';
+import dbHandler from './db';
 
-const getWinnerObject = (winner) => ({
+const router = express.Router();
+
+const getWinnerObject = (winner: number) => ({
   isGameFinished: winner !== 0,
   winner: ["None", "White", "Black", "Draw"][winner]
 });
 
-const checkForWinner = (board) => {
+interface Move {
+  reset?: boolean;
+  x: number;
+  y: number;
+  stone: number;
+}
+
+interface Game {
+  moves: Move[];
+  winner: number;
+  size: number;
+}
+
+const checkForWinner = (board: number[][]) => {
   let available = 0;
 
   for (let i = 0; i < board.length; i++) {
@@ -55,13 +70,13 @@ const checkForWinner = (board) => {
   return 0;
 }
 
-module.exports = (db) => {
-  const dbFuncs = require('./db.js')(db);
+export default (db: Db): Router => {
+  const dbFuncs = dbHandler(db);
 
   // Games
   router.get('/games', (req, res) => {
     db.collection('games')
-      .find({ user: ObjectId(req.user.id), winner: { $ne: null } })
+      .find({ user: new ObjectId(req.user!.id), winner: { $ne: null } })
       .toArray((err, result) => {
         if (err) {
           res.status(500).json(err);
@@ -74,7 +89,7 @@ module.exports = (db) => {
   // Get single game
   router.get('/game/:id',
     (req, res) => {
-    dbFuncs.getSingleGame(req.user.id, req.params.id, (err, result) => {
+    dbFuncs.getSingleGame(req.user!.id, req.params.id, (err: any, result: Game) => {
         if (err) {
           res.status(500).json(err);
         } else {
@@ -91,7 +106,7 @@ module.exports = (db) => {
     (req, res) => {
       db.collection('games')
         .insertOne({
-          user: ObjectId(req.user.id),
+          user: new ObjectId(req.user!.id),
           date: new Date(),
           size: req.body.size,
           moves: [],
@@ -128,7 +143,7 @@ module.exports = (db) => {
     dataValidationErrorManagement,
     (req, res) => {
       // Get game
-      dbFuncs.getSingleGame(req.user.id, req.body.game, (err, result) => {
+      dbFuncs.getSingleGame(req.user!.id, req.body.game, (err: any, result: Game) => {
         if (err || !result) {
           return res.status(500).json(err || {err: "No such game"});
         }
@@ -142,8 +157,8 @@ module.exports = (db) => {
         if (req.body.move.reset) {
           db.collection('games')
             .updateOne({
-              user: ObjectId(req.user.id),
-              _id: ObjectId(req.body.game),
+              user: new ObjectId(req.user!.id),
+              _id: new ObjectId(req.body.game),
               winner: null
             }, {
               $set: { moves: [] },
@@ -182,8 +197,8 @@ module.exports = (db) => {
         // Update game
         db.collection('games')
           .updateOne({
-            user: ObjectId(req.user.id),
-            _id: ObjectId(req.body.game),
+            user: new ObjectId(req.user!.id),
+            _id: new ObjectId(req.body.game),
             winner: null
           }, {
             $push: { moves: req.body.move },
@@ -202,8 +217,8 @@ module.exports = (db) => {
   router.delete('/game/:id', (req, res) => {
     db.collection('games')
       .deleteOne({
-        user: ObjectId(req.user.id),
-        _id: ObjectId(req.params.id),
+        user: new ObjectId(req.user!.id),
+        _id: new ObjectId(req.params.id),
         winner: null
       }, (err, doc) => {
         if (err) {
