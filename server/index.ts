@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import session from 'express-session';
@@ -33,10 +34,12 @@ app.use(session({
   }
 }));
 
-const port = 5000;
+const port = process.env.PORT || 5000;
 
+console.log("Try to connect to db")
 client.connect((err, db) => {
   if (err || !db) {
+    console.log("Err:", err)
     process.exit();
   }
 
@@ -52,8 +55,16 @@ client.connect((err, db) => {
   app.use('/', userRouter);
   app.use('/', isAuthenticated, gameRouter);
 
+  // Serve client files
+  if(process.env.NODE_ENV === 'production') {
+    app.use(express.static('../client/build'));
+
+    app.get('*', (_, res) => {
+      res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'));
+    });
+  }
+
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
 })
-
