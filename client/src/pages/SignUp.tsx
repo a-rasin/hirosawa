@@ -14,7 +14,7 @@ export default function SignUp() {
   const [isCredentialInvalid, setIsCredentialInvalid] = useState(false);
 
   const handleSignUp = async () => {
-    const data = await fetch('/user', {
+    const data = await fetch('/api/user', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

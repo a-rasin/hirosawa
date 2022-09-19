@@ -21,7 +21,7 @@ export default function GameLog() {
   const navigate = useNavigate();
 
   const getGame = async () => {
-    const data = await fetch('/game/' + gameId);
+    const data = await fetch('/api/game/' + gameId);
     const json = await data.json();
 
     if (!json) {

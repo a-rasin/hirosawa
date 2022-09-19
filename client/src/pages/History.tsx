@@ -8,7 +8,7 @@ export default function History() {
   const [games, setGames] = useState([]);
 
   const getGames = async () => {
-    const data = await fetch('/games');
+    const data = await fetch('/api/games');
     setGames((await data.json())?.data);
   };
 

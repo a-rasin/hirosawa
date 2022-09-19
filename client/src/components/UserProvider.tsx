@@ -14,7 +14,7 @@ export default function UserProvider({ children }: UserProviderProps) {
 
   useEffect(() => {
     const getUser = async () => {
-      const data = await fetch("/user");
+      const data = await fetch("/api/user");
 
       const json = await data.json();
       if (data.status === 200) {

@@ -15,14 +15,14 @@ export default function Home({
   useEffect(() => {
     setBoardSize(boards[0].size);
 
-    fetch("/games")
+    fetch("/api/games")
       .then(data => data.json())
       .then(data => console.log(data))
   }, []);
 
   const handleStart = async () => {
     if (boardSize) {
-      const data = await fetch('/game', {
+      const data = await fetch('/api/game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

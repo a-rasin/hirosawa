@@ -23,7 +23,7 @@ export default function Header() {
           <button
             className={style.action}
             onClick={async () => {
-              await fetch('/logout', {
+              await fetch('/api/logout', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

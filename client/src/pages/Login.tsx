@@ -15,7 +15,7 @@ export default function Login() {
   const [isCredentialInvalid, setIsCredentialInvalid] = useState(false);
 
   const handleLogin = async () => {
-    const data = await fetch('/login', {
+    const data = await fetch('/api/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

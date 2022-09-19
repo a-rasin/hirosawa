@@ -52,8 +52,8 @@ client.connect((err, db) => {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.use('/', userRouter);
-  app.use('/', isAuthenticated, gameRouter);
+  app.use('/api', userRouter);
+  app.use('/api', isAuthenticated, gameRouter);
 
   // Serve client files
   if(process.env.NODE_ENV === 'production') {

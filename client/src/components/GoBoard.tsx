@@ -23,7 +23,7 @@ const GoBoard = ({ size, gameId }: { size: number, gameId: string }) => {
       setTurn((turn + 1) % 2);
       setMoveNum(moveNum + 1);
 
-      const data = await fetch('/game', {
+      const data = await fetch('/api/game', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ const GoBoard = ({ size, gameId }: { size: number, gameId: string }) => {
     setTurn(1);
     setMoveNum(0);
 
-    await fetch('/game', {
+    await fetch('/api/game', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const GoBoard = ({ size, gameId }: { size: number, gameId: string }) => {
   const handleLeave = async () => {
     if (winner === -1) {
       // Delete game
-      await fetch('/game/' + gameId, {
+      await fetch('/api/game/' + gameId, {
         method: 'DELETE'
       });
 
