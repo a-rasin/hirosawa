@@ -20,7 +20,7 @@ npm run dev
 
 To build everything:
 ```
-npm run build
+npm run heroku-postbuild
 ```
 
 To start in production mode:
