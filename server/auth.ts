@@ -36,7 +36,7 @@ export default (con: Db): PassportStatic => {
 
   passport.serializeUser((user: any, cb) => {
     process.nextTick(function() {
-      cb(null, { id: user._id, username: user.username });
+      cb(null, { id: user.id, username: user.username });
     });
   });
 
