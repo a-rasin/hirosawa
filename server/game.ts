@@ -1,8 +1,9 @@
-import express, { Router } from 'express';
-import { ObjectId, Db } from 'mongodb';
+import express from 'express';
+import { ObjectId } from 'mongodb';
 import { dataValidationErrorManagement } from './middleware';
 import { body } from 'express-validator';
-import dbHandler from './db';
+import dbFuncs from './db';
+import GameModel from './models/game';
 
 const router = express.Router();
 
@@ -10,19 +11,6 @@ const getWinnerObject = (winner: number) => ({
   isGameFinished: winner !== 0,
   winner: ["None", "White", "Black", "Draw"][winner]
 });
-
-interface Move {
-  reset?: boolean;
-  x: number;
-  y: number;
-  stone: number;
-}
-
-interface Game {
-  moves: Move[];
-  winner: number;
-  size: number;
-}
 
 const checkForWinner = (board: number[][]) => {
   let available = 0;
@@ -70,163 +58,149 @@ const checkForWinner = (board: number[][]) => {
   return 0;
 }
 
-export default (db: Db): Router => {
-  const dbFuncs = dbHandler(db);
+// Games
+router.get('/games', async (req, res) => {
+  try {
+    const result = await GameModel.find({ user: new ObjectId(req.user!.id), winner: { $ne: null } })
+    res.json({data: result});
+  } catch (err) {
+    res.status(500).json(err);
+  }
+})
 
-  // Games
-  router.get('/games', (req, res) => {
-    db.collection('games')
-      .find({ user: new ObjectId(req.user!.id), winner: { $ne: null } })
-      .toArray((err, result) => {
-        if (err) {
-          res.status(500).json(err);
-        } else {
-          res.json({data: result});
-        }
-      })
-  })
+// Get single game
+router.get('/game/:id', async (req, res) => {
+  try {
+    const result = await dbFuncs.getSingleGame(req.user!.id, req.params.id);
+    res.json({data: result});
+  } catch (err) {
+      res.status(500).json(err);
+  }
+});
 
-  // Get single game
-  router.get('/game/:id',
-    (req, res) => {
-    dbFuncs.getSingleGame(req.user!.id, req.params.id, (err: any, result: Game) => {
-        if (err) {
-          res.status(500).json(err);
-        } else {
-          res.json({data: result});
-        }
+// Create game
+router.post(
+  '/game',
+  body('size').isInt({ min: 5, max: 9 }),
+  dataValidationErrorManagement,
+  async (req, res) => {
+    try {
+      const result = new GameModel({
+        user: new ObjectId(req.user!.id),
+        date: new Date(),
+        size: req.body.size,
+        moves: [],
+        winner: null
       });
-  })
+      await result.save();
 
-  // Create game
-  router.post(
-    '/game',
-    body('size').isInt({ min: 5, max: 9 }),
-    dataValidationErrorManagement,
-    (req, res) => {
-      db.collection('games')
-        .insertOne({
-          user: new ObjectId(req.user!.id),
-          date: new Date(),
-          size: req.body.size,
-          moves: [],
-          winner: null
-        }, (err, result) => {
-          if (err) {
-            res.status(500).json(err);
-          } else {
-            res.json({data: result});
-          }
-        })
+      res.json({data: result});
+    } catch (err) {
+      res.status(500).json(err);
     }
-  )
+  }
+)
 
-  // Update game
-  router.put(
-    '/game',
-    body('game').isMongoId(),
-    body('move').custom((value, { req }) => {
-      if (!value.reset) {
-        body('move.x')
-          .isInt({ min: 0 })
-          .run(req);
-        body('move.y')
-          .isInt({ min: 0 })
-          .run(req);
-        body('move.stone')
-          .isInt({ min: 1, max: 2 })
-          .run(req);
+// Update game
+router.put(
+  '/game',
+  body('game').isMongoId(),
+  body('move').custom((value, { req }) => {
+    if (!value.reset) {
+      body('move.x')
+      .isInt({ min: 0 })
+      .run(req);
+      body('move.y')
+      .isInt({ min: 0 })
+      .run(req);
+      body('move.stone')
+      .isInt({ min: 1, max: 2 })
+      .run(req);
+    }
+
+    return true;
+  }),
+  dataValidationErrorManagement,
+  async (req, res) => {
+    try {
+      // Get game
+      const result = await dbFuncs.getSingleGame(req.user!.id, req.body.game);
+
+      if (!result) {
+        throw new Error("No such game");
       }
 
-      return true;
-    }),
-    dataValidationErrorManagement,
-    (req, res) => {
-      // Get game
-      dbFuncs.getSingleGame(req.user!.id, req.body.game, (err: any, result: Game) => {
-        if (err || !result) {
-          return res.status(500).json(err || {err: "No such game"});
-        }
+      // If already finished return the winner
+      if (result.winner) {
+        return res.json(getWinnerObject(result.winner));
+      }
 
-        // If already finished return the winner
-        if (result.winner) {
-          return res.json(getWinnerObject(result.winner));
-        }
-
-        // Reset board
-        if (req.body.move.reset) {
-          db.collection('games')
-            .updateOne({
-              user: new ObjectId(req.user!.id),
-              _id: new ObjectId(req.body.game),
-              winner: null
-            }, {
-              $set: { moves: [] },
-            }, (err, _) => {
-              if (err) {
-                return res.status(500).json(err);
-              }
-
-              res.json(getWinnerObject(0));
-            });
-
-          return;
-        }
-
-        // Else calculate winner
-        let board = new Array(result.size).fill([]);
-
-        board = board.map(() =>
-          new Array(result.size).fill(0).map(() => 0)
-        );
-
-        result.moves.forEach(a => {
-          board[a.x][a.y] = a.stone;
+      // Reset board
+      if (req.body.move.reset) {
+        await GameModel.updateOne({
+          user: new ObjectId(req.user!.id),
+          _id: new ObjectId(req.body.game),
+          winner: null
+        }, {
+          $set: { moves: [] },
         });
 
-        const {x, y, stone} = req.body.move;
+        res.json(getWinnerObject(0));
+        return;
+      }
 
-        if (x > board.length || x < 0 || y < 0 || y > board.length) {
-          return res.status(500).json({err: "Move should have x and y that are inside the board's bounds."});
+      // Else calculate winner
+      let board = new Array(result.size).fill([]);
+
+      board = board.map(() =>
+        new Array(result.size).fill(0).map(() => 0)
+      );
+
+      result.moves.forEach(a => {
+        if (a.x !== undefined && a.y !== undefined) {
+          board[a.x][a.y] = a.stone;
         }
-
-        board[x][y] = stone;
-
-        const winner = checkForWinner(board);
-
-        // Update game
-        db.collection('games')
-          .updateOne({
-            user: new ObjectId(req.user!.id),
-            _id: new ObjectId(req.body.game),
-            winner: null
-          }, {
-            $push: { moves: req.body.move },
-            $set: { winner: winner > 0 ? winner : null }
-          }, (err, _) => {
-            if (err) {
-              return res.status(500).json(err);
-            }
-
-            res.json(getWinnerObject(winner));
-          });
-      })
-    }
-  )
-
-  router.delete('/game/:id', (req, res) => {
-    db.collection('games')
-      .deleteOne({
-        user: new ObjectId(req.user!.id),
-        _id: new ObjectId(req.params.id),
-        winner: null
-      }, (err, doc) => {
-        if (err) {
-          return res.status(500).json(err);
-        }
-        return res.json(doc);
       });
-  })
 
-  return router;
-}
+      const {x, y, stone} = req.body.move;
+
+      if (x > board.length || x < 0 || y < 0 || y > board.length) {
+        return res.status(500).json({err: "Move should have x and y that are inside the board's bounds."});
+      }
+
+      board[x][y] = stone;
+
+      const winner = checkForWinner(board);
+
+      // Update game
+      await GameModel.updateOne({
+        user: new ObjectId(req.user!.id),
+        _id: new ObjectId(req.body.game),
+        winner: null
+      }, {
+        $push: { moves: req.body.move },
+        $set: { winner: winner > 0 ? winner : null }
+      });
+
+      res.json(getWinnerObject(winner));
+    } catch (err) {
+      return res.status(500).json(err || {err: "No such game"});
+    }
+  }
+);
+
+router.delete('/game/:id', async (req, res) => {
+  try {
+    const result = await GameModel.deleteOne({
+      user: new ObjectId(req.user!.id),
+      _id: new ObjectId(req.params.id),
+      winner: null
+    });
+
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+})
+
+export default router;

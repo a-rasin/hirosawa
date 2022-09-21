@@ -1,8 +1,8 @@
-import { ObjectId, Db, Callback } from 'mongodb';
+import { ObjectId } from 'mongodb';
+import GameModel from './models/game';
 
-export default (db: Db) => ({
-  getSingleGame: (userId: string, gameId: string, func: Callback) => {
-    db.collection('games')
-      .findOne({ _id: new ObjectId(gameId), user: new ObjectId(userId) }, func)
+export default {
+  getSingleGame: async (userId: string, gameId: string) => {
+    return await GameModel.findOne({ _id: new ObjectId(gameId), user: new ObjectId(userId) });
   }
-})
+}

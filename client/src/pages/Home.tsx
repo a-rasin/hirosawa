@@ -36,7 +36,7 @@ export default function Home({
 
       const json = await data.json();
 
-      navigate("/game/" + json.data.insertedId);
+      navigate("/game/" + json.data._id);
     } else {
       alert("Set Board Size");
     }

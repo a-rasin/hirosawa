@@ -1,22 +1,17 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
-import { MongoClient } from 'mongodb';
 import session from 'express-session';
+import mongoose from 'mongoose';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import { isAuthenticated } from './middleware';
 import dotenv from 'dotenv';
-import authHandler from './auth';
-import gameHandler from './game';
+import passport from './auth';
+import gameRouter from './game';
 import userHandler from './user';
 
 dotenv.config();
-
-const client = new MongoClient(process.env.DB ?? '', {
-  // useNewUrlParser: true,
-  // useUnifiedTopology: true
-});
 
 const app = express();
 
@@ -37,17 +32,16 @@ app.use(session({
 const port = process.env.PORT || 5000;
 
 console.log("Try to connect to db")
-client.connect((err, db) => {
-  if (err || !db) {
+
+const run = async () => {
+  try {
+    await mongoose.connect(process.env.DB || '');
+  } catch (err) {
     console.log("Err:", err)
     process.exit();
   }
 
-  const con = db.db();
-
-  const passport = authHandler(con);
-  const gameRouter = gameHandler(con);
-  const userRouter = userHandler(con, passport);
+  const userRouter = userHandler(passport);
 
   app.use(passport.initialize());
   app.use(passport.session());
@@ -67,4 +61,6 @@ client.connect((err, db) => {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
-})
+};
+
+run();
