@@ -21,7 +21,7 @@ const requiredIfNoReset = function (this: Move): boolean {
 }
 
 const requiredIfNoStone = function (this: Move): boolean {
-  return !this.reset;
+  return !this.stone;
 }
 
 const moveSchema = new Schema<Move>({

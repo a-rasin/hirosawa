@@ -7,7 +7,7 @@ npm run install
 ```
 
 ### .env files
-Create one and add a DB property that points to your mongodb uri
+Create one in the server directory and add a DB property that points to your mongodb uri
 ```
 DB=mongodb://127.0.0.1:27017/assignment3
 ```
