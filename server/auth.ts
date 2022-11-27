@@ -8,6 +8,8 @@ declare global {
     interface User {
       id: string,
       username: string,
+      rawId: string,
+      publicKey: string
     }
   }
 }
@@ -24,7 +26,7 @@ passport.use(new Strategy(async (username: string, password: string, cb: any) =>
     const match = await bcrypt.compare(password, user.hash);
     if (!match) return cb(null, false, {message: "Wrong password"});
 
-    return cb(null, { id: user._id, username: user.username });
+    return cb(null, { id: user._id, username: user.username, publicKey: user.publicKey, rawId: user.rawId });
   } catch (err) {
     return cb(err)
   }
@@ -32,7 +34,7 @@ passport.use(new Strategy(async (username: string, password: string, cb: any) =>
 
 passport.serializeUser((user: any, cb) => {
   process.nextTick(function() {
-    cb(null, { id: user.id, username: user.username });
+    cb(null, { id: user.id, username: user.username, publicKey: user.publicKey, rawId: user.rawId });
   });
 });
 

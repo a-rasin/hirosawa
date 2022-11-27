@@ -20,6 +20,7 @@ export default function Header() {
               Game History
             </button>
           )}
+          <Link to="/register-credential" className={style.action}>Register Credential</Link>
           <button
             className={style.action}
             onClick={async () => {

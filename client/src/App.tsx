@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router";
 import { Header, UserProvider, AuthRoute } from "./components";
-import { Home, Login, SignUp, Game, GameLog, History } from "./pages";
+import { Home, Login, SignUp, Game, GameLog, History, RegisterCredential } from "./pages";
 
 function App() {
   const [boardSize, setBoardSize] = useState(0);
@@ -22,6 +22,7 @@ function App() {
             <Route path="signUp" element={<SignUp />} />
             <Route path="history" element={<AuthRoute><History /></AuthRoute>} />
             <Route path="game/:gameId" element={<AuthRoute><Game size={boardSize} /></AuthRoute>} />
+            <Route path="register-credential" element={<AuthRoute><RegisterCredential /></AuthRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

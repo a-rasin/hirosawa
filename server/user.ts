@@ -60,7 +60,7 @@ export default (passport: PassportStatic): Router => {
     if (!req.user) {
       return res.status(401).json({ err: 'Not logged in' });
     }
-    res.json({ success: true, user: {id: req.user.id, username: req.user.username} });
+    res.json({ success: true, user: {id: req.user.id, username: req.user.username, publicKey: req.user.publicKey, rawId: req.user.rawId} });
   });
 
   router.post('/logout', (req, res, next) => {

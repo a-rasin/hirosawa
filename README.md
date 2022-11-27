@@ -27,3 +27,13 @@ To start in production mode:
 ```
 npm run start
 ```
+
+To only run the server:
+```
+cd server && npm run dev
+```
+
+To only run the client:
+```
+cd client && npm run start
+```
